@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import UserLogin from "./UserLogin";
-import OncologyForecast from "./oncolofyForecast";
+import OncologyForecast from "./OncolofyForecast";
 import { makeStyles } from "@fluentui/react-components";
 import Header from "./Header";
 import ModelManagementPage from "./ModelManagment";
@@ -34,7 +34,6 @@ function App() {
     }
   };
 
-  
   return (
     <>
       <Header />
