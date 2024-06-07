@@ -4,7 +4,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 
 const urlDev = "https://localhost:3000/";
-const urlProd = "https://main.d2rlvo7y93ozcy.amplifyapp.com/"; // Updated to your AWS Amplify URL
+const urlProd = "https://main.d2rlvo7y93ozcy.amplifyapp.com/";
 
 async function getHttpsOptions() {
   try {
@@ -75,6 +75,10 @@ module.exports = async (env, options) => {
             transform(content) {
               return isDev ? content : content.toString().replace(new RegExp(urlDev, "g"), urlProd);
             },
+          },
+          {
+            from: "index.html", // Ensure this line is included to copy your index.html
+            to: "index.html",
           },
         ],
       }),
