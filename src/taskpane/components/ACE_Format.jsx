@@ -91,7 +91,7 @@ export async function formatTimelineTop(context, sheetName, rangeAddress) {
 
   await context.sync();
   console.log("Formatting complete");
-};
+}
 
 function applyFormatting(range) {
   // Set font properties
@@ -117,3 +117,34 @@ function applyFormatting(range) {
   borders.getItem("EdgeRight").color = "#BFBFBF"; // Gray
   borders.getItem("EdgeBottom").color = "#BFBFBF"; // Gray
 };
+export async function createLineChart() {
+  await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getActiveWorksheet();
+
+    // Add sample data to the worksheet
+    const data = [
+      ["Month", "Sales"],
+      ["January", 30],
+      ["February", 40],
+      ["March", 50],
+      ["April", 60],
+      ["May", 70],
+    ];
+
+    const range = sheet.getRange("A1:B6");
+    range.values = data;
+
+    // Create a line chart
+    const chart = sheet.charts.add(Excel.ChartType.line, range, Excel.ChartSeriesBy.columns);
+    chart.title.text = "Monthly Sales Data";
+    chart.legend.position = Excel.ChartLegendPosition.right;
+    chart.legend.format.fill.setSolidColor("white");
+
+    chart.dataLabels.showValue = true;
+
+    const series = chart.series.getItemAt(0);
+    series.name = "Sales";
+
+    await context.sync();
+  });
+}

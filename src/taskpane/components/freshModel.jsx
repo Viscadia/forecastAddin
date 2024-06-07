@@ -9,9 +9,10 @@ const FreshModel = ({ setPageValue }) => {
 
   const ACE_Format1 = async () => {
     await Excel.run(async (context) => {
-      await aceFormat.formatGranularity(context, "ACE Sheet", "H5");
-      await aceFormat.formatModelName(context, "ACE Sheet", "i6");
-      await aceFormat.formatTimelineTop(context, "ACE Sheet", "o7:hz7"); // Call the formatModelName function with the context and range address
+      // await aceFormat.formatGranularity(context, "ACE Sheet", "H5");
+      // await aceFormat.formatModelName(context, "ACE Sheet", "i6");
+      await aceFormat.createLineChart();
+       // Call the formatModelName function with the context and range address
     });
   };
   return (
