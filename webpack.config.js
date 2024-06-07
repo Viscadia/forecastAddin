@@ -1,22 +1,27 @@
-/* eslint-disable no-undef */
-
 const devCerts = require("office-addin-dev-certs");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 
 const urlDev = "https://localhost:3000/";
-const urlProd = "https://www.contoso.com/"; // CHANGE THIS TO YOUR PRODUCTION DEPLOYMENT LOCATION
+const urlProd = "https://main.d2rlvo7y93ozcy.amplifyapp.com/"; // Updated to your AWS Amplify URL
 
 async function getHttpsOptions() {
-  const httpsOptions = await devCerts.getHttpsServerOptions();
-  return { ca: httpsOptions.ca, key: httpsOptions.key, cert: httpsOptions.cert };
+  try {
+    const httpsOptions = await devCerts.getHttpsServerOptions();
+    return { ca: httpsOptions.ca, key: httpsOptions.key, cert: httpsOptions.cert };
+  } catch (error) {
+    console.error("Failed to get HTTPS options:", error);
+    return {};
+  }
 }
 
 module.exports = async (env, options) => {
-  const dev = options.mode === "development";
-  const config = {
-    devtool: "source-map",
+  const isDev = options.mode === "development";
+  const httpsOptions = await getHttpsOptions();
+
+  return {
+    devtool: isDev ? "source-map" : false,
     entry: {
       polyfill: ["core-js/stable", "regenerator-runtime/runtime"],
       vendor: ["react", "react-dom", "core-js", "@fluentui/react-components", "@fluentui/react-icons"],
@@ -25,9 +30,11 @@ module.exports = async (env, options) => {
     },
     output: {
       clean: true,
+      filename: "[name].[contenthash].js", // Cache-busting
+      path: __dirname + "/dist", // Ensure output path is correct
     },
     resolve: {
-      extensions: [".html", ".js", ".jsx"],
+      extensions: [".js", ".jsx", ".html"],
     },
     module: {
       rules: [
@@ -36,17 +43,7 @@ module.exports = async (env, options) => {
           use: {
             loader: "babel-loader",
             options: {
-              presets: ["@babel/preset-env"],
-            },
-          },
-          exclude: /node_modules/,
-        },
-        {
-          test: /\.js$/,
-          use: {
-            loader: "babel-loader",
-            options: {
-              presets: ["@babel/preset-env"],
+              presets: ["@babel/preset-env", "@babel/preset-react"],
             },
           },
           exclude: /node_modules/,
@@ -74,13 +71,9 @@ module.exports = async (env, options) => {
           },
           {
             from: "manifest*.xml",
-            to: "[name]" + "[ext]",
+            to: "[name][ext]",
             transform(content) {
-              if (dev) {
-                return content;
-              } else {
-                return content.toString().replace(new RegExp(urlDev, "g"), urlProd);
-              }
+              return isDev ? content : content.toString().replace(new RegExp(urlDev, "g"), urlProd);
             },
           },
         ],
@@ -106,11 +99,14 @@ module.exports = async (env, options) => {
       },
       server: {
         type: "https",
-        options: env.WEBPACK_BUILD || options.https !== undefined ? options.https : await getHttpsOptions(),
+        options: isDev ? httpsOptions : {}, // Use HTTPS options only in development
       },
       port: process.env.npm_package_config_dev_server_port || 3000,
     },
+    optimization: {
+      splitChunks: {
+        chunks: "all", // Enable code splitting for better caching
+      },
+    },
   };
-
-  return config;
 };
